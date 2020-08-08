@@ -12,9 +12,16 @@ abstract class DiffEnum
 
 class CSVDiff {
 
+    //MARK: - Constants -
+    const LINE_KEY      = "Line"; 
+    const STATYS_KEY    = "Status";
+
+    //MARK: - Variables - 
     private $from_file_path = '';
-    private $to_file_path = '';
-    private $diffArray = array();
+    private $to_file_path   = '';
+    private $diffArray      = array();
+
+    //MARK: - Constructors - 
 
     /**
 	* Constructor
@@ -25,9 +32,11 @@ class CSVDiff {
         $this->to_file_path = $to_file_path;
     }
 
+    //MARK: - Static Methods -
+
     /*
-    * Return an opcodes string describing the diff between a "From" and a
-	* "To" string
+    * Return an Array string describing the diff between a "From" and a "To" string
+    *  ...
 	*/
 	public static function getDiffFromFiles($from_file_path , $to_file_path) {
 		$diff = new CSVDiff($from_file_path, $to_file_path);
@@ -49,7 +58,7 @@ class CSVDiff {
 
         //Open Table
         echo '<table style="width:100%"> ';
-        $header = explode(";", $diff[0]['Line']);
+        $header = explode(";", $diff[0][CSVDiff::LINE_KEY]);
 
         echo "<tr style='background-color:grey'>";
         echo "<th style='border-bottom: 1px solid #ddd'> # </th>";
@@ -61,7 +70,7 @@ class CSVDiff {
         array_shift($diff);
         foreach($diff as $line){
             $pColor = "";
-            switch($line['Status']) {
+            switch($line[CSVDiff::STATYS_KEY]) {
                 case DiffEnum::ADDED:
                     $pColor = $addedColor;
                 break;
@@ -79,7 +88,7 @@ class CSVDiff {
                 $pColor = $defaultColor;
             }
 
-            $line = explode(";", $line["Line"]);
+            $line = explode(";", $line[CSVDiff::LINE_KEY]);
             echo "<tr style='background-color:$pColor'>";
 
             echo "<td style='border-bottom: 1px solid #ddd'>" . ++$i . "</td>";
@@ -97,6 +106,8 @@ class CSVDiff {
     public static function getJsonFromDiff($diff) {
         return json_encode($diff);
     }
+
+    //MARK: - Private Methods -
 
     private function getDiff()     
     {
@@ -120,7 +131,6 @@ class CSVDiff {
                 continue;
             } 
 
-            //TODO: dynamic 
             //Are they 80% Similiar
             similar_text($f1_line, $f2_line, $percentage);
 
@@ -206,7 +216,7 @@ class CSVDiff {
             return;
         }
         
-        array_push($this->diffArray, array("Line" => $str, "Status" => $enum));
+        array_push($this->diffArray, array(CSVDiff::LINE_KEY => $str, CSVDiff::STATYS_KEY => $enum));
     }
 
 }

@@ -25,6 +25,5 @@ class HomeController extends Controller
         );
 
         return CSVDiff::getHtmlFromDiff($fileDiff);
-
     }
 }
