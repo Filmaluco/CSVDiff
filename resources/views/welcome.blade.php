@@ -109,6 +109,17 @@
                 CSV Diff
             </div>
 
+            @if (count($errors) > 0)
+            <div class="alert alert-danger">
+                <strong>Whoops!</strong> There were some problems with your input.
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
             <form action="/" method="POST" id="csvform" enctype="multipart/form-data">
                 @csrf
 
@@ -139,17 +150,17 @@
     $("#csvform").trigger("reset");
     $("#csvform").change(function() {
 
-        if ($('#file1').val()){
+        if ($('#file1').val()) {
             console.log("Changed")
             $('#btn1').removeClass('btn');
             $('#btn1').addClass('btn-selected');
         }
 
-        if ($('#file2').val()){
+        if ($('#file2').val()) {
             $('#btn2').removeClass('btn');
             $('#btn2').addClass('btn-selected');
         }
-        
+
         if ($('#file1').val() && $('#file2').val()) {
             $("#csvform").submit();
         }

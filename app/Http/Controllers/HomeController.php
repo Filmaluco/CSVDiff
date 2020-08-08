@@ -11,8 +11,13 @@ class HomeController extends Controller
         return view("welcome");
     }
 
-    public function Diff()
+    public function Diff(Request $request)
     {
+        $validatedData = $request->validate([
+            'file1' => 'required|file|mimes:csv,txt',
+            'file2' => 'required|file|mimes:csv,txt',
+        ]);
+
         echo 'Uploaded';
     }
 }
