@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Libraries\CSVDiff\CSVDiff;
 
 class HomeController extends Controller
 {
@@ -13,11 +14,15 @@ class HomeController extends Controller
 
     public function Diff(Request $request)
     {
-        $validatedData = $request->validate([
+        $request->validate([
             'file1' => 'required|file|mimes:csv,txt',
             'file2' => 'required|file|mimes:csv,txt',
         ]);
 
-        echo 'Uploaded';
+        $fileDiff = CSVDiff::getDiffFromFiles(
+            $request->file('file1')->getRealPath(), 
+            $request->file('file2')->getRealPath()
+        );
+
     }
 }
