@@ -2,17 +2,19 @@
 
 namespace App\Libraries\CSVDiff;
 
-use function Ramsey\Uuid\v1;
-
-class CSVDiff {
-
+abstract class DiffEnum
+{
     const UNCHANGED  = 0;
     const REMOVED    = 1;
     const ADDED      = 2;
     const UPDATED    = 3;
+}
+
+class CSVDiff {
 
     private $from_file_path = '';
     private $to_file_path = '';
+    private $diffArray = array();
 
     /**
 	* Constructor
@@ -33,9 +35,70 @@ class CSVDiff {
     }
 
     public static function getHtmlFromDiff($diff) {
+        $i = 0;
+        $addedColor = "#66bb6a";
+        $removedColor = "#ff3d00";
+        $updatedColor = "#78909c";
+        $defaultColor = "white";
+
+        echo '
+            <div style="background-color:'.$addedColor.'" width="150"> New Line </div>
+            <div style="background-color:'.$removedColor.'" width="150"> Deleted Line </div>
+            <div style="background-color:'.$updatedColor.'" width="150"> Updated Line </div>
+        ';
+
+        //Open Table
+        echo '<table style="width:100%"> ';
+        $header = explode(";", $diff[0]['Line']);
+
+        echo "<tr style='background-color:grey'>";
+        echo "<th style='border-bottom: 1px solid #ddd'> # </th>";
+        foreach($header as $columName) {
+            echo "<th style='border-bottom: 1px solid #ddd'> $columName </th>";
+        }
+        echo "</tr>";
+
+        array_shift($diff);
+        foreach($diff as $line){
+            $pColor = "";
+            switch($line['Status']) {
+                case DiffEnum::ADDED:
+                    $pColor = $addedColor;
+                break;
+                case DiffEnum::REMOVED:
+                    $pColor = $removedColor;
+                break;
+                case DiffEnum::UNCHANGED:
+                    $pColor = $defaultColor;
+                break;
+                case DiffEnum::UPDATED:
+                    $pColor = $updatedColor;
+                break;
+
+                default:
+                $pColor = $defaultColor;
+            }
+
+            $line = explode(";", $line["Line"]);
+            echo "<tr style='background-color:$pColor'>";
+
+            echo "<td style='border-bottom: 1px solid #ddd'>" . ++$i . "</td>";
+        
+            foreach($line as $rowField) {
+                echo "<td style='border-bottom: 1px solid #ddd'> $rowField </td>";
+            }
+            echo "</tr>";
+        }
+
+        //Close Table
+        echo "</table>";
     }
 
-    public function getDiff()     
+    public static function getJsonFromDiff($diff) {
+        return json_encode($diff);
+    }
+
+    private function getDiff()     
     {
         //Open Files
         $handleF1 = fopen($this->from_file_path, "r");
@@ -53,7 +116,7 @@ class CSVDiff {
             //Is F1 Line == F2 Line
             if (strcmp($f1_line, $f2_line) == 0) {
                 //Mark Unchanged
-                echo "<p style='background-color:white;'>". $f2_line. "</p>";
+                $this->markLine($f2_line, DiffEnum::UNCHANGED);
                 continue;
             } 
 
@@ -63,14 +126,14 @@ class CSVDiff {
 
             if ($percentage > 80) {
                 //Mark Updated
-                echo "<p style='background-color:blue;'>". $f2_line. "</p>";
+                $this->markLine($f2_line, DiffEnum::UPDATED);
                 continue;
-}
+            }
 
             //Does F1 Line exists F2 File?
             if (($pos = $this->lineExist($f1_line, $handleF2, ftell($handleF2))) == -1) {
                 //Mark Removed
-                echo "<p style='background-color:red;'>". $f1_line. "</p>";
+                $this->markLine($f2_line, DiffEnum::REMOVED);
                 //Only move F1 Pointer, so go back in F2
                 fseek($handleF2, ftell($handleF2) - strlen($f2_line));
                 continue;
@@ -88,12 +151,12 @@ class CSVDiff {
             
             if($previousLinesExists) {
                 //Mark Removed
-                echo "<p style='background-color:orange;'>". $f2_line. "</p>";
+                $this->markLine($f2_line, DiffEnum::REMOVED);
                 //Only move F1 Pointer, so go back in F2
                 fseek($handleF2, ftell($handleF2) - strlen($f2_line));
             } else {
                 //Mark as added
-                echo "<p style='background-color:green;'>". $f2_line. "</p>";
+                $this->markLine($f2_line, DiffEnum::ADDED);
                 fseek($handleF1, ftell($handleF1) - strlen($f1_line));
             }
         }
@@ -101,24 +164,27 @@ class CSVDiff {
         //Remove All 
         while(($f1_line = fgets($handleF1)) !== FALSE) {
             //Mark as removed
-            echo "<p style='background-color:red;'>-". $f1_line. "</p>";
+            $this->markLine($f1_line, DiffEnum::REMOVED);
         }
         //Add All
         while(($f2_line = fgets($handleF2)) !== FALSE) {
             //Mark as added
-            echo "<p style='background-color:green;'>-". $f2_line. "</p>";
+            $this->markLine($f2_line, DiffEnum::ADDED);
         }
         
         //Close Files
         fclose($handleF1);
         fclose($handleF2);
+
+        //Return diffArray
+        return $this->diffArray;
     }
 
     /*
     *
     * returns offset if exists -1 if not
     */
-    private function lineExist($str, $handler, $offset = 0) {
+    private function lineExist($str, $handler) {
         $previousOffset = ftell($handler);
         $lineExists = FALSE;
 
@@ -132,6 +198,15 @@ class CSVDiff {
         $currentOffset = ftell($handler) - strlen($line);
         fseek($handler, $previousOffset);
         return $lineExists == FALSE ? -1 : $currentOffset;
+    }
+
+    private function markLine($str, $enum) {
+
+        if (!is_numeric($enum)) {
+            return;
+        }
+        
+        array_push($this->diffArray, array("Line" => $str, "Status" => $enum));
     }
 
 }

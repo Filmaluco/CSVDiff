@@ -24,5 +24,7 @@ class HomeController extends Controller
             $request->file('file2')->getRealPath()
         );
 
+        return CSVDiff::getHtmlFromDiff($fileDiff);
+
     }
 }
