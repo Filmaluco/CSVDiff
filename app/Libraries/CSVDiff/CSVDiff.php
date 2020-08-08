@@ -15,6 +15,10 @@ class CSVDiff
     //MARK: - Constants -
     const LINE_KEY      = "Line";
     const STATYS_KEY    = "Status";
+    const DIFF_KEY      = "Difference";
+
+    const OLD_KEY      = "Old";
+    const NEW_KEY      = "New";
 
     //MARK: - Variables - 
     private $from_file_path = '';
@@ -140,8 +144,8 @@ class CSVDiff
 
             if ($percentage > 80) {
                 //Mark Updated
-                $this->markLine($f2_line, DiffEnum::UPDATED);
-                $this->highlightDiff($f1_line, $f2_line);
+                $highlight = $this->highlightDiff($f1_line, $f2_line);
+                $this->markLine($f2_line, DiffEnum::UPDATED, $highlight[CSVDiff::NEW_KEY]);
                 continue;
             }
 
@@ -216,14 +220,20 @@ class CSVDiff
         return $lineExists == FALSE ? -1 : $currentOffset;
     }
 
-    private function markLine($str, $enum)
+    private function markLine($str, $enum, $difference = null)
     {
 
         if (!is_numeric($enum)) {
             return;
         }
 
-        array_push($this->diffArray, array(CSVDiff::LINE_KEY => $str, CSVDiff::STATYS_KEY => $enum));
+        $array = array(CSVDiff::LINE_KEY => $str, CSVDiff::STATYS_KEY => $enum);
+
+        if ($difference != null) {
+            $array[CSVDiff::DIFF_KEY] = $difference;
+        }
+
+        array_push($this->diffArray, $array);
     }
 
     private function highlightDiff($old, $new){
@@ -241,6 +251,6 @@ class CSVDiff
         $new = "$start{{$new_diff}}$end";
         $old = "$start{{$old_diff}}$end";
 
-        return array("old"=>$old, "new"=>$new);
+        return array(CSVDiff::OLD_KEY=>$old, CSVDiff::NEW_KEY=>$new);
     }
 }
