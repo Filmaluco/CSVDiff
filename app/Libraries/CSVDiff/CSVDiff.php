@@ -12,7 +12,6 @@ abstract class DiffEnum
 
 class CSVDiff
 {
-
     //MARK: - Constants -
     const LINE_KEY      = "Line";
     const STATYS_KEY    = "Status";
@@ -142,6 +141,7 @@ class CSVDiff
             if ($percentage > 80) {
                 //Mark Updated
                 $this->markLine($f2_line, DiffEnum::UPDATED);
+                $this->highlightDiff($f1_line, $f2_line);
                 continue;
             }
 
@@ -224,5 +224,23 @@ class CSVDiff
         }
 
         array_push($this->diffArray, array(CSVDiff::LINE_KEY => $str, CSVDiff::STATYS_KEY => $enum));
+    }
+
+    private function highlightDiff($old, $new){
+        $from_start = strspn($old ^ $new, "\0");        
+        $from_end = strspn(strrev($old) ^ strrev($new), "\0");
+    
+        $old_end = strlen($old) - $from_end;
+        $new_end = strlen($new) - $from_end;
+    
+        $start = substr($new, 0, $from_start);
+        $end = substr($new, $new_end);
+        $new_diff = substr($new, $from_start, $new_end - $from_start);  
+        $old_diff = substr($old, $from_start, $old_end - $from_start);
+    
+        $new = "$start{{$new_diff}}$end";
+        $old = "$start{{$old_diff}}$end";
+
+        return array("old"=>$old, "new"=>$new);
     }
 }
