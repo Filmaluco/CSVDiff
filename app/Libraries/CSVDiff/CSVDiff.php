@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Libraries\CSVDiff;
+
 use Exception;
 
 abstract class DiffEnum
@@ -42,17 +43,17 @@ class CSVDiff
     //MARK: - Static Methods -
 
     /** 
-    * Return an Array string describing the diff between a "From" and a "To" string
-    *
-    * @param from_file_path the original file
-    * @param to_file_path the new version of the file
-    *
-    * @return Array contains all lines from the new version and lines removed from the previous ones </br>
-    * each value of the array contains:
-    * "Line" - new version of the line
-    * "Status" - DiffEnum with the change on the current line
-    * "Difference" (optional) - if the status is DiffEnum::UPDATED will contain the changes {OLD}{NEW}
-	*/
+     * Return an Array string describing the diff between a "From" and a "To" string
+     *
+     * @param from_file_path the original file
+     * @param to_file_path the new version of the file
+     *
+     * @return Array contains all lines from the new version and lines removed from the previous ones </br>
+     * each value of the array contains:
+     * "Line" - new version of the line
+     * "Status" - DiffEnum with the change on the current line
+     * "Difference" (optional) - if the status is DiffEnum::UPDATED will contain the changes {OLD}{NEW}
+     */
     public static function getDiffFromFiles($from_file_path, $to_file_path)
     {
         $diff = new CSVDiff($from_file_path, $to_file_path);
@@ -74,6 +75,7 @@ class CSVDiff
         $updatedColor = "#fff9c4";
         $defaultColor = "white";
 
+        //Print Label
         echo '
             <div style="background-color:' . $addedColor . '" width="150"> New Line </div>
             <div style="background-color:' . $removedColor . '" width="150"> Deleted Line </div>
@@ -84,6 +86,7 @@ class CSVDiff
         echo '<table style="width:100%"> ';
         $header = explode(";", $diff[0][CSVDiff::LINE_KEY]);
 
+        // Use first line as table header
         echo "<tr style='background-color:grey'>";
         echo "<th style='border-bottom: 1px solid #ddd'> # </th>";
         foreach ($header as $columName) {
@@ -92,6 +95,7 @@ class CSVDiff
         echo "</tr>";
 
         array_shift($diff);
+        // Print lines 
         foreach ($diff as $line) {
 
             $pColor = "";
@@ -128,7 +132,7 @@ class CSVDiff
             echo "<td style='border-bottom: 1px solid #ddd'>" . ++$i . "</td>";
 
             foreach ($newLine as $rowField) {
-                    echo "<td style='border-bottom: 1px solid #ddd'> $rowField </td>";   
+                echo "<td style='border-bottom: 1px solid #ddd'> $rowField </td>";
             }
             echo "</tr>";
         }
@@ -138,16 +142,16 @@ class CSVDiff
     }
 
     /** 
-    * Return an JSONObject with the lines and changes
-    *
-    * @param diff Diff Array based on CSVDiff::getDiffFromFiles or csvDiff->getDiff()
-    *
-    * @return json array all lines from the new version and lines removed from the previous ones </br>
-    * each value of the array contains:
-    * "Line" - new version of the line
-    * "Status" - DiffEnum with the change on the current line
-    * "Difference" (optional) - if the status is DiffEnum::UPDATED will contain the changes {OLD}{NEW}
-	*/
+     * Return an JSONObject with the lines and changes
+     *
+     * @param diff Diff Array based on CSVDiff::getDiffFromFiles or csvDiff->getDiff()
+     *
+     * @return json array all lines from the new version and lines removed from the previous ones </br>
+     * each value of the array contains:
+     * "Line" - new version of the line
+     * "Status" - DiffEnum with the change on the current line
+     * "Difference" (optional) - if the status is DiffEnum::UPDATED will contain the changes {OLD}{NEW}
+     */
     public static function getJsonFromDiff($diff)
     {
         return json_encode($diff);
@@ -156,15 +160,15 @@ class CSVDiff
     //MARK: - Private Methods -
 
     /**
-    * Generates array with the difference between the object files $from_file_path & private $to_file_path
-    * 
-    * @throws Exception if files can't be openned
-    * @return Array contains all lines from the new version and lines removed from the previous ones </br>
-    * each value of the array contains:
-    * "Line" - new version of the line
-    * "Status" - DiffEnum with the change on the current line
-    * "Difference" (optional) - if the status is DiffEnum::UPDATED will contain the changes {OLD}{NEW}
-	*/
+     * Generates array with the difference between the object files $from_file_path & private $to_file_path
+     * 
+     * @throws Exception if files can't be openned
+     * @return Array contains all lines from the new version and lines removed from the previous ones </br>
+     * each value of the array contains:
+     * "Line" - new version of the line
+     * "Status" - DiffEnum with the change on the current line
+     * "Difference" (optional) - if the status is DiffEnum::UPDATED will contain the changes {OLD}{NEW}
+     */
     private function getDiff()
     {
         //Open Files
@@ -247,13 +251,13 @@ class CSVDiff
     }
 
     /** 
-    * Checks if the given line after the cursor in the file handler
-    *
-    * @param str string to be found in file
-    * @param handler file handler to look for str
-    *
-    * @return cursoroffset if exists OR -1 if line was not found
-    */
+     * Checks if the given line after the cursor in the file handler
+     *
+     * @param str string to be found in file
+     * @param handler file handler to look for str
+     *
+     * @return cursoroffset if exists OR -1 if line was not found
+     */
     private function lineExist($str, $handler)
     {
         $previousOffset = ftell($handler);
@@ -282,7 +286,6 @@ class CSVDiff
      */
     private function markLine($str, $enum, $difference = null)
     {
-
         if (!is_numeric($enum)) {
             return;
         }
@@ -305,16 +308,17 @@ class CSVDiff
      * @return String line with the changes bewtween {}
      * <b>example: </b> startLine{oldValue}{newValue}endOfLine
      */
-    private function highlightDiff($old, $new){
-        $from_start = strspn($old ^ $new, "\0");        
+    private function highlightDiff($old, $new)
+    {
+        $from_start = strspn($old ^ $new, "\0");
         $from_end = strspn(strrev($old) ^ strrev($new), "\0");
-    
+
         $old_end = strlen($old) - $from_end;
         $new_end = strlen($new) - $from_end;
-    
+
         $start = substr($new, 0, $from_start);
         $end = substr($new, $new_end);
-        $new_diff = substr($new, $from_start, $new_end - $from_start);  
+        $new_diff = substr($new, $from_start, $new_end - $from_start);
         $old_diff = substr($old, $from_start, $old_end - $from_start);
 
         return "$start{{$old_diff}}{{$new_diff}}$end";
