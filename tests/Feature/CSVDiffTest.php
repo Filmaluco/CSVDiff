@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Libraries\CSVDiff\CSVDiff;
 use App\Libraries\CSVDiff\DiffEnum;
 use Exception;
-use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class CSVDiffTest extends TestCase
