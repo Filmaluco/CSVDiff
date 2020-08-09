@@ -8,6 +8,10 @@ Use the package manager [composer](https://getcomposer.org/) to run the demo app
 
 ## Usage
 
+You can access a demo at [Heroku](https://mighty-tundra-66747.herokuapp.com/).
+
+OR
+
 ```bash
 git clone https://github.com/Filmaluco/CSVDiff.git
 cd CSVDiff
