@@ -17,9 +17,6 @@ class CSVDiff
     const STATYS_KEY    = "Status";
     const DIFF_KEY      = "Difference";
 
-    const OLD_KEY      = "Old";
-    const NEW_KEY      = "New";
-
     //MARK: - Variables - 
     private $from_file_path = '';
     private $to_file_path   = '';
@@ -54,7 +51,7 @@ class CSVDiff
         $i = 0;
         $addedColor = "#66bb6a";
         $removedColor = "#ff3d00";
-        $updatedColor = "#78909c";
+        $updatedColor = "#fff9c4";
         $defaultColor = "white";
 
         echo '
@@ -76,7 +73,10 @@ class CSVDiff
 
         array_shift($diff);
         foreach ($diff as $line) {
+
             $pColor = "";
+            $newLine = $line[CSVDiff::LINE_KEY];
+
             switch ($line[CSVDiff::STATYS_KEY]) {
                 case DiffEnum::ADDED:
                     $pColor = $addedColor;
@@ -89,19 +89,26 @@ class CSVDiff
                     break;
                 case DiffEnum::UPDATED:
                     $pColor = $updatedColor;
+                    $newLine = $line[CSVDiff::DIFF_KEY];
+                    //Replace first with red
+                    $newLine = preg_replace("({)", "<s><b style='color:$removedColor'>", $newLine, 1);
+                    $newLine = preg_replace("(})", "</b></s>", $newLine, 1);
+                    //Replace second with green
+                    $newLine = preg_replace("({)", "<b style='color:$addedColor'>", $newLine);
+                    $newLine = preg_replace("(})", "</b>", $newLine);
                     break;
 
                 default:
                     $pColor = $defaultColor;
             }
 
-            $line = explode(";", $line[CSVDiff::LINE_KEY]);
+            $newLine = explode(";", $newLine);
             echo "<tr style='background-color:$pColor'>";
 
             echo "<td style='border-bottom: 1px solid #ddd'>" . ++$i . "</td>";
 
-            foreach ($line as $rowField) {
-                echo "<td style='border-bottom: 1px solid #ddd'> $rowField </td>";
+            foreach ($newLine as $rowField) {
+                    echo "<td style='border-bottom: 1px solid #ddd'> $rowField </td>";   
             }
             echo "</tr>";
         }
@@ -145,7 +152,7 @@ class CSVDiff
             if ($percentage > 80) {
                 //Mark Updated
                 $highlight = $this->highlightDiff($f1_line, $f2_line);
-                $this->markLine($f2_line, DiffEnum::UPDATED, $highlight[CSVDiff::NEW_KEY]);
+                $this->markLine($f2_line, DiffEnum::UPDATED, $highlight);
                 continue;
             }
 
@@ -247,10 +254,7 @@ class CSVDiff
         $end = substr($new, $new_end);
         $new_diff = substr($new, $from_start, $new_end - $from_start);  
         $old_diff = substr($old, $from_start, $old_end - $from_start);
-    
-        $new = "$start{{$new_diff}}$end";
-        $old = "$start{{$old_diff}}$end";
 
-        return array(CSVDiff::OLD_KEY=>$old, CSVDiff::NEW_KEY=>$new);
+        return "$start{{$old_diff}}{{$new_diff}}$end";
     }
 }
