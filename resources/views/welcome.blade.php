@@ -135,7 +135,8 @@
             </form>
 
             <div class="links m-b-md">
-                <a href="https://filmaluco.github.io/CSVDiff/">Docs</a>
+                <a href="https://filmaluco.github.io/CSVDiff/classes/App-Libraries-CSVDiff-CSVDiff.html">Docs</a>
+                <a href="/TTRDiff(2).png">Flowchart of CSVDiff</a>
                 <a href="https://github.com/Filmaluco/CSVDiff">GitHub</a>
             </div>
 
