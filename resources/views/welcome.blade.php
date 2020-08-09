@@ -135,7 +135,7 @@
             </form>
 
             <div class="links m-b-md">
-                <a href="#">Docs</a>
+                <a href="https://filmaluco.github.io/CSVDiff/">Docs</a>
                 <a href="https://github.com/Filmaluco/CSVDiff">GitHub</a>
             </div>
 
