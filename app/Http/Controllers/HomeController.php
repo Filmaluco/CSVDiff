@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Libraries\CSVDiff\CSVDiff;
+use Exception;
 
 class HomeController extends Controller
 {
@@ -19,10 +20,15 @@ class HomeController extends Controller
             'file2' => 'required|file|mimes:csv,txt',
         ]);
 
-        $fileDiff = CSVDiff::getDiffFromFiles(
-            $request->file('file1')->getRealPath(), 
-            $request->file('file2')->getRealPath()
-        );
+        try {
+            $fileDiff = CSVDiff::getDiffFromFiles(
+                $request->file('file1')->getRealPath(), 
+                $request->file('file2')->getRealPath()
+            );
+        } catch (Exception $e) {
+            echo $e->getMessage(), " - Please try again later\n";
+            die();
+        }
 
         return CSVDiff::getHtmlFromDiff($fileDiff);
     }

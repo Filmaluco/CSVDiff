@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Libraries\CSVDiff;
+use Exception;
 
 abstract class DiffEnum
 {
@@ -26,7 +27,11 @@ class CSVDiff
 
     /**
      * Constructor
-     * ...
+     *
+     * Creates an instance of the CSVDiff Library based on the two input file paths
+     *
+     * @param from_file_path the original file
+     * @param to_file_path the new version of the file
      */
     public function __construct($from_file_path, $to_file_path)
     {
@@ -36,9 +41,17 @@ class CSVDiff
 
     //MARK: - Static Methods -
 
-    /*
+    /** 
     * Return an Array string describing the diff between a "From" and a "To" string
-    *  ...
+    *
+    * @param from_file_path the original file
+    * @param to_file_path the new version of the file
+    *
+    * @return Array contains all lines from the new version and lines removed from the previous ones </br>
+    * each value of the array contains:
+    * "Line" - new version of the line
+    * "Status" - DiffEnum with the change on the current line
+    * "Difference" (optional) - if the status is DiffEnum::UPDATED will contain the changes {OLD}{NEW}
 	*/
     public static function getDiffFromFiles($from_file_path, $to_file_path)
     {
@@ -46,6 +59,13 @@ class CSVDiff
         return $diff->getDiff();
     }
 
+    /**
+     * Generates a labeled HTML table with all the changed highlighted by color
+     * 
+     * @param diff Diff Array based on CSVDiff::getDiffFromFiles or csvDiff->getDiff()
+     * 
+     * @return html table and labels
+     */
     public static function getHtmlFromDiff($diff)
     {
         $i = 0;
@@ -117,6 +137,17 @@ class CSVDiff
         echo "</table>";
     }
 
+    /** 
+    * Return an JSONObject with the lines and changes
+    *
+    * @param diff Diff Array based on CSVDiff::getDiffFromFiles or csvDiff->getDiff()
+    *
+    * @return json array all lines from the new version and lines removed from the previous ones </br>
+    * each value of the array contains:
+    * "Line" - new version of the line
+    * "Status" - DiffEnum with the change on the current line
+    * "Difference" (optional) - if the status is DiffEnum::UPDATED will contain the changes {OLD}{NEW}
+	*/
     public static function getJsonFromDiff($diff)
     {
         return json_encode($diff);
@@ -124,6 +155,16 @@ class CSVDiff
 
     //MARK: - Private Methods -
 
+    /**
+    * Generates array with the difference between the object files $from_file_path & private $to_file_path
+    * 
+    * @throws Exception if files can't be openned
+    * @return Array contains all lines from the new version and lines removed from the previous ones </br>
+    * each value of the array contains:
+    * "Line" - new version of the line
+    * "Status" - DiffEnum with the change on the current line
+    * "Difference" (optional) - if the status is DiffEnum::UPDATED will contain the changes {OLD}{NEW}
+	*/
     private function getDiff()
     {
         //Open Files
@@ -134,8 +175,7 @@ class CSVDiff
         if ($handleF1 === FALSE || $handleF2 === FALSE) {
             $handleF1 !== FALSE ? fclose($handleF1) : "";
             $handleF2 !== FALSE ? fclose($handleF2) : "";
-            //TODO: think about exceptions?
-            return "";
+            throw new Exception('Not able to open files');
         }
 
         while (($f1_line = fgets($handleF1)) !== FALSE && ($f2_line = fgets($handleF2)) !== FALSE) {
@@ -206,9 +246,13 @@ class CSVDiff
         return $this->diffArray;
     }
 
-    /*
+    /** 
+    * Checks if the given line after the cursor in the file handler
     *
-    * returns offset if exists -1 if not
+    * @param str string to be found in file
+    * @param handler file handler to look for str
+    *
+    * @return cursoroffset if exists OR -1 if line was not found
     */
     private function lineExist($str, $handler)
     {
@@ -227,6 +271,15 @@ class CSVDiff
         return $lineExists == FALSE ? -1 : $currentOffset;
     }
 
+    /**
+     * Marks line in the object internal $diffArray
+     * 
+     * @param str line to add to diffArray
+     * @param enum DiffEnum with the nature of the line change
+     * @param difference optional param when we want to feed the highlightDiff
+     * 
+     * @return
+     */
     private function markLine($str, $enum, $difference = null)
     {
 
@@ -243,6 +296,15 @@ class CSVDiff
         array_push($this->diffArray, $array);
     }
 
+    /**
+     * Function to highlight the diff between strings
+     * 
+     * @param old string
+     * @param new string
+     * 
+     * @return String line with the changes bewtween {}
+     * <b>example: </b> startLine{oldValue}{newValue}endOfLine
+     */
     private function highlightDiff($old, $new){
         $from_start = strspn($old ^ $new, "\0");        
         $from_end = strspn(strrev($old) ^ strrev($new), "\0");
